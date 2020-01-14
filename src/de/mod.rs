@@ -160,9 +160,9 @@ where
         }
 
         let res = str::from_utf8(&buf[..width])
-                .ok()
-                .and_then(|s| s.chars().next())
-                .ok_or(error())?;
+            .ok()
+            .and_then(|s| s.chars().next())
+            .ok_or(error())?;
         visitor.visit_char(res)
     }
 
@@ -248,10 +248,8 @@ where
             {
                 if self.len > 0 {
                     self.len -= 1;
-                    let value = serde::de::DeserializeSeed::deserialize(
-                        seed,
-                        &mut *self.deserializer,
-                    )?;
+                    let value =
+                        serde::de::DeserializeSeed::deserialize(seed, &mut *self.deserializer)?;
                     Ok(Some(value))
                 } else {
                     Ok(None)
@@ -310,10 +308,8 @@ where
             {
                 if self.len > 0 {
                     self.len -= 1;
-                    let key = serde::de::DeserializeSeed::deserialize(
-                        seed,
-                        &mut *self.deserializer,
-                    )?;
+                    let key =
+                        serde::de::DeserializeSeed::deserialize(seed, &mut *self.deserializer)?;
                     Ok(Some(key))
                 } else {
                     Ok(None)
@@ -324,10 +320,7 @@ where
             where
                 V: serde::de::DeserializeSeed<'de>,
             {
-                let value = serde::de::DeserializeSeed::deserialize(
-                    seed,
-                    &mut *self.deserializer,
-                )?;
+                let value = serde::de::DeserializeSeed::deserialize(seed, &mut *self.deserializer)?;
                 Ok(value)
             }
 
