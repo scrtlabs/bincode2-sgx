@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate serde_derive;
 
-extern crate bincode;
+extern crate bincode2;
 extern crate byteorder;
 #[macro_use]
 extern crate serde;
@@ -12,7 +12,7 @@ use std::collections::HashMap;
 use std::fmt::{self, Debug};
 use std::result::Result as StdResult;
 
-use bincode::{
+use bincode2::{
     config, deserialize, deserialize_from, deserialize_in_place, serialize, serialized_size,
     ErrorKind, Result,
 };
@@ -484,7 +484,7 @@ fn test_zero_copy_parse() {
 
 #[test]
 fn test_zero_copy_parse_deserialize_into() {
-    use bincode::BincodeRead;
+    use bincode2::BincodeRead;
     use std::io;
 
     /// A BincodeRead implementation for byte slices

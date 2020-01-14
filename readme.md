@@ -1,9 +1,8 @@
-# Bincode
+# Bincode 2
 
+A maintained fork of the now-defunct [Bincode](https://github.com/servo/bincode).
 <img align="right" src="./logo.png" />
 
-[![Build Status](https://travis-ci.com/servo/bincode.svg)](https://travis-ci.com/servo/bincode)
-[![](https://meritbadge.herokuapp.com/bincode)](https://crates.io/crates/bincode)
 [![](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 A compact encoder / decoder pair that uses a binary zero-fluff encoding scheme.
