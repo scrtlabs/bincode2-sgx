@@ -2,7 +2,7 @@
 name = "bincode2"
 version = "2.0.0" # remember to update html_root_url
 authors = ["Tom Kaitchuck <Tom.Kaitchuck@dell.com"]
-exclude = ["logo.png", "tests/*", "examples/*", ".gitignore", ".travis.yml"]
+exclude = ["logo.png", "examples/*", ".gitignore", ".travis.yml"]
 publish =  true
 
 repository = "https://github.com/pravega/bincode2"
