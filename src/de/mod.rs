@@ -146,7 +146,7 @@ where
         let mut buf = [0u8; 4];
 
         // Look at the first byte to see how many bytes must be read
-        let _ = self.reader.read_exact(&mut buf[..1])?;
+        self.reader.read_exact(&mut buf[..1])?;
         let width = utf8_char_width(buf[0]);
         if width == 1 {
             return visitor.visit_char(buf[0] as char);
@@ -162,7 +162,7 @@ where
         let res = str::from_utf8(&buf[..width])
             .ok()
             .and_then(|s| s.chars().next())
-            .ok_or(error())?;
+            .ok_or_else(error)?;
         visitor.visit_char(res)
     }
 
