@@ -421,7 +421,7 @@ fn test_oom_protection() {
     let x = config()
         .limit(10)
         .serialize(&FakeVec {
-            len: 0xffffffffffffffffu64,
+            len: 0xffff_ffff_ffff_ffff_u64,
             byte: 1,
         }).unwrap();
     let y: Result<Vec<u8>> = config()
@@ -495,10 +495,10 @@ fn test_zero_copy_parse_deserialize_into() {
     impl<'storage> SliceReader<'storage> {
         #[inline(always)]
         fn unexpected_eof() -> Box<::ErrorKind> {
-            return Box::new(::ErrorKind::Io(io::Error::new(
+            Box::new(::ErrorKind::Io(io::Error::new(
                 io::ErrorKind::UnexpectedEof,
                 "",
-            )));
+            )))
         }
     }
 
