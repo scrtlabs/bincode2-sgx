@@ -78,10 +78,10 @@ impl<R: io::Read> io::Read for IoReader<R> {
 impl<'storage> SliceReader<'storage> {
     #[inline(always)]
     fn unexpected_eof() -> Box<::ErrorKind> {
-        return Box::new(::ErrorKind::Io(io::Error::new(
+        Box::new(::ErrorKind::Io(io::Error::new(
             io::ErrorKind::UnexpectedEof,
             "",
-        )));
+        )))
     }
 }
 
@@ -145,9 +145,7 @@ where
         // Then create a slice with the length as our desired length. This is
         // safe as long as we only write (no reads) to this buffer, because
         // `reserve_exact` above has allocated this space.
-        let buf = unsafe {
-            slice::from_raw_parts_mut(self.temp_buffer.as_mut_ptr(), length)
-        };
+        let buf = unsafe { slice::from_raw_parts_mut(self.temp_buffer.as_mut_ptr(), length) };
 
         // This method is assumed to properly handle slices which include
         // uninitialized bytes (as ours does). See discussion at the link below.
@@ -181,8 +179,7 @@ where
             Err(e) => return Err(::ErrorKind::InvalidUtf8Encoding(e).into()),
         };
 
-        let r = visitor.visit_str(string);
-        r
+        visitor.visit_str(string)
     }
 
     fn get_byte_buffer(&mut self, length: usize) -> Result<Vec<u8>> {
@@ -195,7 +192,6 @@ where
         V: serde::de::Visitor<'a>,
     {
         self.fill_buffer(length)?;
-        let r = visitor.visit_bytes(&self.temp_buffer[..]);
-        r
+        visitor.visit_bytes(&self.temp_buffer[..])
     }
 }

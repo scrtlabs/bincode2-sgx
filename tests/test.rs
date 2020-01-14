@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate serde_derive;
 
-extern crate bincode;
+extern crate bincode2;
 extern crate byteorder;
 #[macro_use]
 extern crate serde;
@@ -12,7 +12,7 @@ use std::collections::HashMap;
 use std::fmt::{self, Debug};
 use std::result::Result as StdResult;
 
-use bincode::{
+use bincode2::{
     config, deserialize, deserialize_from, deserialize_in_place, serialize, serialized_size,
     ErrorKind, Result,
 };
@@ -334,12 +334,10 @@ fn test_serialized_size_bounded() {
     assert!(config().limit(7).serialized_size(&0u64).is_err());
     assert!(config().limit(7).serialized_size(&"").is_err());
     assert!(config().limit(8 + 0).serialized_size(&"a").is_err());
-    assert!(
-        config()
-            .limit(8 + 3 * 4 - 1)
-            .serialized_size(&vec![0u32, 1u32, 2u32])
-            .is_err()
-    );
+    assert!(config()
+        .limit(8 + 3 * 4 - 1)
+        .serialized_size(&vec![0u32, 1u32, 2u32])
+        .is_err());
 }
 
 #[test]
@@ -421,9 +419,10 @@ fn test_oom_protection() {
     let x = config()
         .limit(10)
         .serialize(&FakeVec {
-            len: 0xffffffffffffffffu64,
+            len: 0xffff_ffff_ffff_ffff_u64,
             byte: 1,
-        }).unwrap();
+        })
+        .unwrap();
     let y: Result<Vec<u8>> = config()
         .limit(10)
         .deserialize_from(&mut Cursor::new(&x[..]));
@@ -484,7 +483,7 @@ fn test_zero_copy_parse() {
 
 #[test]
 fn test_zero_copy_parse_deserialize_into() {
-    use bincode::BincodeRead;
+    use bincode2::BincodeRead;
     use std::io;
 
     /// A BincodeRead implementation for byte slices
@@ -495,10 +494,10 @@ fn test_zero_copy_parse_deserialize_into() {
     impl<'storage> SliceReader<'storage> {
         #[inline(always)]
         fn unexpected_eof() -> Box<::ErrorKind> {
-            return Box::new(::ErrorKind::Io(io::Error::new(
+            Box::new(::ErrorKind::Io(io::Error::new(
                 io::ErrorKind::UnexpectedEof,
                 "",
-            )));
+            )))
         }
     }
 
@@ -581,7 +580,8 @@ fn test_zero_copy_parse_deserialize_into() {
                 slice: &encoded[..],
             },
             &mut target,
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(target, f);
     }
 }
