@@ -32,10 +32,7 @@ pub(crate) struct Deserializer<R, O: Options> {
 impl<'de, R: BincodeRead<'de>, O: Options> Deserializer<R, O> {
     /// Creates a new Deserializer with a given `Read`er and a size_limit.
     pub(crate) fn new(r: R, options: O) -> Deserializer<R, O> {
-        Deserializer {
-            reader: r,
-            options,
-        }
+        Deserializer { reader: r, options }
     }
 
     fn read_bytes(&mut self, count: u64) -> Result<()> {
@@ -162,12 +159,10 @@ where
             return Err(error());
         }
 
-        let res = try!(
-            str::from_utf8(&buf[..width])
-                .ok()
-                .and_then(|s| s.chars().next())
-                .ok_or(error())
-        );
+        let res = try!(str::from_utf8(&buf[..width])
+            .ok()
+            .and_then(|s| s.chars().next())
+            .ok_or(error()));
         visitor.visit_char(res)
     }
 
