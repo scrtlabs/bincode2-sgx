@@ -6,6 +6,7 @@ use serde;
 use byteorder::WriteBytesExt;
 
 use super::internal::SizeLimit;
+use super::internal::SizeType;
 use super::{Error, ErrorKind, Result};
 use config::Options;
 
@@ -107,7 +108,7 @@ impl<'a, W: Write, O: Options> serde::Serializer for &'a mut Serializer<W, O> {
     }
 
     fn serialize_str(self, v: &str) -> Result<()> {
-        self.serialize_u64(v.len() as u64)?;
+        O::StringSize::write(&mut *self, v.len())?;
         self.writer.write_all(v.as_bytes()).map_err(Into::into)
     }
 
@@ -118,7 +119,7 @@ impl<'a, W: Write, O: Options> serde::Serializer for &'a mut Serializer<W, O> {
     }
 
     fn serialize_bytes(self, v: &[u8]) -> Result<()> {
-        self.serialize_u64(v.len() as u64)?;
+        O::ArraySize::write(&mut *self, v.len())?;
         self.writer.write_all(v).map_err(Into::into)
     }
 
@@ -136,7 +137,7 @@ impl<'a, W: Write, O: Options> serde::Serializer for &'a mut Serializer<W, O> {
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq> {
         let len = len.ok_or(ErrorKind::SequenceMustHaveLength)?;
-        self.serialize_u64(len as u64)?;
+        O::ArraySize::write(&mut *self, len)?;
         Ok(Compound { ser: self })
     }
 
@@ -165,7 +166,7 @@ impl<'a, W: Write, O: Options> serde::Serializer for &'a mut Serializer<W, O> {
 
     fn serialize_map(self, len: Option<usize>) -> Result<Self::SerializeMap> {
         let len = len.ok_or(ErrorKind::SequenceMustHaveLength)?;
-        self.serialize_u64(len as u64)?;
+        O::ArraySize::write(&mut *self, len)?;
         Ok(Compound { ser: self })
     }
 
@@ -308,7 +309,7 @@ impl<'a, O: Options> serde::Serializer for &'a mut SizeChecker<O> {
     }
 
     fn serialize_str(self, v: &str) -> Result<()> {
-        self.add_value(0 as u64)?;
+        O::StringSize::write(&mut *self, v.len())?;
         self.add_raw(v.len() as u64)
     }
 
@@ -317,7 +318,7 @@ impl<'a, O: Options> serde::Serializer for &'a mut SizeChecker<O> {
     }
 
     fn serialize_bytes(self, v: &[u8]) -> Result<()> {
-        self.add_value(0 as u64)?;
+        O::ArraySize::write(&mut *self, v.len())?;
         self.add_raw(v.len() as u64)
     }
 
@@ -335,8 +336,7 @@ impl<'a, O: Options> serde::Serializer for &'a mut SizeChecker<O> {
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq> {
         let len = len.ok_or(ErrorKind::SequenceMustHaveLength)?;
-
-        self.serialize_u64(len as u64)?;
+        O::ArraySize::write(&mut *self, len)?;
         Ok(SizeCompound { ser: self })
     }
 
@@ -365,8 +365,7 @@ impl<'a, O: Options> serde::Serializer for &'a mut SizeChecker<O> {
 
     fn serialize_map(self, len: Option<usize>) -> Result<Self::SerializeMap> {
         let len = len.ok_or(ErrorKind::SequenceMustHaveLength)?;
-
-        self.serialize_u64(len as u64)?;
+        O::ArraySize::write(&mut *self, len)?;
         Ok(SizeCompound { ser: self })
     }
 

@@ -4,9 +4,11 @@ use std::io::Read;
 use self::read::BincodeRead;
 use byteorder::ReadBytesExt;
 use internal::SizeLimit;
+use internal::SizeType;
 use serde;
 use serde::de::Error as DeError;
 use serde::de::IntoDeserializer;
+use std::convert::TryInto;
 use {Error, ErrorKind, Result};
 
 pub mod read;
@@ -45,13 +47,17 @@ impl<'de, R: BincodeRead<'de>, O: Options> Deserializer<R, O> {
     }
 
     fn read_vec(&mut self) -> Result<Vec<u8>> {
-        let len: usize = serde::Deserialize::deserialize(&mut *self)?;
-        self.read_bytes(len as u64)?;
+        let len = O::ArraySize::read(&mut || serde::Deserialize::deserialize(&mut *self))?;
+        self.read_bytes(len)?;
+        let len: usize = len.try_into().map_err(|_e| ErrorKind::SizeLimit)?;
         self.reader.get_byte_buffer(len)
     }
 
     fn read_string(&mut self) -> Result<String> {
-        let vec = self.read_vec()?;
+        let len = O::StringSize::read(&mut || serde::Deserialize::deserialize(&mut *self))?;
+        self.read_bytes(len)?;
+        let len: usize = len.try_into().map_err(|_e| ErrorKind::SizeLimit)?;
+        let vec = self.reader.get_byte_buffer(len)?;
         String::from_utf8(vec).map_err(|e| ErrorKind::InvalidUtf8Encoding(e.utf8_error()).into())
     }
 }
@@ -170,8 +176,9 @@ where
     where
         V: serde::de::Visitor<'de>,
     {
-        let len: usize = serde::Deserialize::deserialize(&mut *self)?;
-        self.read_bytes(len as u64)?;
+        let len = O::StringSize::read(&mut || serde::Deserialize::deserialize(&mut *self))?;
+        self.read_bytes(len)?;
+        let len: usize = len.try_into().map_err(|_e| ErrorKind::SizeLimit)?;
         self.reader.forward_read_str(len, visitor)
     }
 
@@ -186,8 +193,9 @@ where
     where
         V: serde::de::Visitor<'de>,
     {
-        let len: usize = serde::Deserialize::deserialize(&mut *self)?;
-        self.read_bytes(len as u64)?;
+        let len = O::ArraySize::read(&mut || serde::Deserialize::deserialize(&mut *self))?;
+        self.read_bytes(len)?;
+        let len: usize = len.try_into().map_err(|_e| ErrorKind::SizeLimit)?;
         self.reader.forward_read_bytes(len, visitor)
     }
 
@@ -283,8 +291,8 @@ where
     where
         V: serde::de::Visitor<'de>,
     {
-        let len = serde::Deserialize::deserialize(&mut *self)?;
-
+        let len = O::ArraySize::read(&mut || serde::Deserialize::deserialize(&mut *self))?;
+        let len: usize = len.try_into().map_err(|_e| ErrorKind::SizeLimit)?;
         self.deserialize_tuple(len, visitor)
     }
 
@@ -329,8 +337,8 @@ where
             }
         }
 
-        let len = serde::Deserialize::deserialize(&mut *self)?;
-
+        let len = O::ArraySize::read(&mut || serde::Deserialize::deserialize(&mut *self))?;
+        let len: usize = len.try_into().map_err(|_e| ErrorKind::SizeLimit)?;
         visitor.visit_map(Access {
             deserializer: self,
             len,
